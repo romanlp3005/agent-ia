@@ -7,9 +7,11 @@ import os
 
 app = Flask(__name__)
 
-# --- CONFIGURATION ---
-client = OpenAI(api_key="COLLER_TA_CLE_ICI")
-DB_FILE = 'config_salon.json'
+import os
+from openai import OpenAI
+
+# Cette ligne dit à Python : "Va chercher la clé que j'ai tapé dans Render"
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # --- BACKEND (La logique reste la même) ---
 def load_db():
