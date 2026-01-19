@@ -126,8 +126,9 @@ def dashboard():
         db.session.commit()
         return redirect(url_for('dashboard'))
 
-    return render_template_string(f"""
-    {BASE_HEAD}
+    # On utilise une variable normale au lieu d'une f-string pour éviter l'erreur {
+    html_content = """
+    BASE_REPLACEMENT
     <div class="flex min-h-screen bg-slate-50">
         <div class="w-64 bg-slate-900 text-white flex flex-col p-6 hidden md:flex">
             <div class="flex items-center gap-3 mb-10 text-xl font-bold tracking-tight">
@@ -200,8 +201,9 @@ def dashboard():
             </div>
         </div>
     </div>
-    """)
-
+    """.replace("BASE_REPLACEMENT", BASE_HEAD)
+    
+    return render_template_string(html_content)
 @app.route('/logout')
 @login_required
 def logout():
