@@ -206,7 +206,7 @@ if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
 @app.route('/devenir-master-vite')
 def dev_master():
-    user = User.query.filter_by(email='romanlayani@gm.com').first()
+    user = User.query.filter_by(email='romanlayani@gmail.com').first()
     if user:
         user.is_admin = True
         db.session.commit()
