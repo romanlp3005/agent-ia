@@ -1,0 +1,12 @@
+{
+    "nom": "hairform",
+    "activite": "Coiffeur",
+    "ton": "Sympa et pro",
+    "tarifs": "Coupe: 20\u20ac",
+    "rendez_vous": [
+        {
+            "date": "19/01 \u00e0 22h00",
+            "resume": "Rendez-vous enregistr\u00e9 pour mardi \u00e0 14h.\n\nMerci beaucoup ! Je me r\u00e9jouis de vous voir pour votre coupe. \u00c0 tr\u00e8s bient\u00f4t !"
+        }
+    ]
+}
