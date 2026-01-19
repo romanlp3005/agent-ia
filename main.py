@@ -9,9 +9,8 @@ app = Flask(__name__)
 
 # --- CONFIGURATION (CORRIGÉE) ---
 # On cherche la clé dans les variables Render, sinon on utilise la tienne par défaut
-OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "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")
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_KEY)
-
 # IMPORTANT : Définition du fichier de base de données
 DB_FILE = 'config_salon.json'
 
