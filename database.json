@@ -1,0 +1,16 @@
+{
+    "demo": {
+        "nom": "Salon Démo",
+        "activite": "Coiffeur",
+        "ton": "Amical",
+        "tarifs": "Coupe: 20€",
+        "rendez_vous": []
+    },
+    "barber": {
+        "nom": "The Real Barber",
+        "activite": "Barbier",
+        "ton": "Stylé et relax",
+        "tarifs": "Barbe: 15€, Coupe: 25€",
+        "rendez_vous": []
+    }
+}
