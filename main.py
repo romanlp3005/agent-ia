@@ -7,51 +7,65 @@ import os
 
 app = Flask(__name__)
 
-# --- CONFIGURATION (CORRIGÉE) ---
-# On cherche la clé dans les variables Render, sinon on utilise la tienne par défaut
+# --- CONFIGURATION ---
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_KEY)
-# IMPORTANT : Définition du fichier de base de données
-DB_FILE = 'config_salon.json'
+DB_FILE = 'database.json'
 
-# --- BACKEND ---
+# --- LOGIQUE MULTI-CLIENTS ---
 def load_db():
     if not os.path.exists(DB_FILE):
-        default_data = {
-            "nom": "Mon Salon Premium",
-            "activite": "Coiffeur",
-            "ton": "Sympa et professionnel",
-            "tarifs": "Coupe Homme: 25€\nCoupe Femme: 45€",
-            "rendez_vous": []
+        # On crée une base de données avec deux exemples pour tester le multi-client
+        initial_data = {
+            "demo": {
+                "nom": "Salon Démo",
+                "activite": "Coiffeur",
+                "ton": "Amical",
+                "tarifs": "Coupe: 20€",
+                "rendez_vous": []
+            },
+            "barber": {
+                "nom": "The Real Barber",
+                "activite": "Barbier",
+                "ton": "Stylé et relax",
+                "tarifs": "Barbe: 15€, Coupe: 25€",
+                "rendez_vous": []
+            }
         }
-        save_db(default_data)
-        return default_data
+        save_db(initial_data)
+        return initial_data
     with open(DB_FILE, 'r', encoding='utf-8') as f:
-        try:
-            data = json.load(f)
-        except:
-            data = {"nom": "Mon Salon Premium", "rendez_vous": []}
-        if "rendez_vous" not in data: data["rendez_vous"] = []
-        return data
+        return json.load(f)
 
 def save_db(data):
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
 
-# --- FRONTEND ---
-@app.route('/', methods=['GET', 'POST'])
-def dashboard():
-    data = load_db()
-    if request.method == 'POST':
-        data['nom'] = request.form.get('nom')
-        data['activite'] = request.form.get('activite')
-        data['ton'] = request.form.get('ton')
-        data['tarifs'] = request.form.get('tarifs')
-        save_db(data)
-        return redirect(url_for('dashboard'))
+# --- FRONTEND (Dashboard Dynamique) ---
+@app.route('/')
+def home():
+    return "<h1>HairForMe AI - Plateforme SaaS</h1><p>Accédez à votre dashboard via /dashboard/votre-nom</p>"
 
-    nb_rdv = len(data.get('rendez_vous', []))
+@app.route('/dashboard/<client_id>', methods=['GET', 'POST'])
+def dashboard(client_id):
+    db = load_db()
+    if client_id not in db:
+        return "<h1>Erreur : Client inconnu</h1><p>Ce salon n'existe pas encore dans notre base.</p>", 404
     
+    client_data = db[client_id]
+
+    if request.method == 'POST':
+        client_data['nom'] = request.form.get('nom')
+        client_data['activite'] = request.form.get('activite')
+        client_data['ton'] = request.form.get('ton')
+        client_data['tarifs'] = request.form.get('tarifs')
+        db[client_id] = client_data
+        save_db(db)
+        return redirect(url_for('dashboard', client_id=client_id))
+
+    nb_rdv = len(client_data.get('rendez_vous', []))
+    
+    # Template HTML (Identique au précédent mais adapté au client_id)
     html_template = """
     <!DOCTYPE html>
     <html lang="fr">
@@ -76,52 +90,71 @@ def dashboard():
             button { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
             .rdv-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6; }
         </style>
-        <meta http-equiv="refresh" content="10">
+        <meta http-equiv="refresh" content="15">
     </head>
     <body>
         <div class="sidebar">
             <div class="logo"><i class="fas fa-robot"></i> HairForMe AI</div>
-            <a href="/" class="menu-item active"><i class="fas fa-home"></i> Tableau de bord</a>
-            <div style="margin-top: auto; font-size: 12px; color: #9CA3AF;">v1.0.4 PRO</div>
+            <a href="#" class="menu-item active"><i class="fas fa-home"></i> {{ data.nom }}</a>
+            <div style="margin-top: auto; font-size: 11px; color: #9CA3AF;">Identifiant : {{ client_id }}</div>
         </div>
         <div class="main">
-            <h1>Bonjour, {{ data.nom }} 👋</h1>
+            <h1>Espace Client : {{ data.nom }}</h1>
             <div class="stats-grid">
-                <div class="card"><div class="stat-label">RDV pris</div><div class="stat-value">{{ nb_rdv }}</div></div>
-                <div class="card"><div class="stat-label">Appels</div><div class="stat-value">En ligne</div></div>
+                <div class="card"><div class="stat-label">Rendez-vous</div><div class="stat-value">{{ nb_rdv }}</div></div>
                 <div class="card"><div class="stat-label">Statut</div><div class="stat-value" style="color: #10B981;">Actif</div></div>
+                <div class="card"><div class="stat-label">Frais</div><div class="stat-value">0.00 €</div></div>
             </div>
             <div class="content-grid">
                 <div class="card">
-                    <h3>Configuration</h3>
+                    <h3>Configuration de l'IA</h3>
                     <form method="POST">
-                        <label>Nom</label><input type="text" name="nom" value="{{ data.nom }}">
-                        <label>Tarifs</label><textarea name="tarifs" rows="5">{{ data.tarifs }}</textarea>
-                        <button type="submit">Mettre à jour</button>
+                        <label>Nom du Salon</label><input type="text" name="nom" value="{{ data.nom }}">
+                        <label>Personnalité</label><input type="text" name="ton" value="{{ data.ton }}">
+                        <label>Base de connaissances (Tarifs/Infos)</label><textarea name="tarifs" rows="5">{{ data.tarifs }}</textarea>
+                        <button type="submit">Sauvegarder les réglages</button>
                     </form>
                 </div>
                 <div class="card">
-                    <h3>Derniers RDV</h3>
-                    {% for rdv in data.rendez_vous|reverse %}
-                    <div class="rdv-item"><strong>{{ rdv.resume }}</strong></div>
-                    {% endfor %}
+                    <h3>Historique des Rendez-vous</h3>
+                    {% if data.rendez_vous|length == 0 %}
+                        <p>Aucun RDV pour le moment.</p>
+                    {% else %}
+                        {% for rdv in data.rendez_vous|reverse %}
+                        <div class="rdv-item">
+                            <i class="fas fa-calendar-check" style="margin-right: 10px; color: #4F46E5;"></i>
+                            <div><strong>{{ rdv.resume }}</strong><br><small>Le {{ rdv.date }}</small></div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
     </body>
     </html>
     """
-    return render_template_string(html_template, data=data, nb_rdv=nb_rdv)
+    return render_template_string(html_template, data=client_data, nb_rdv=nb_rdv, client_id=client_id)
 
-# --- IA ---
-@app.route("/voice", methods=['POST'])
-def voice():
+# --- IA (Route Multi-Clients) ---
+@app.route("/voice/<client_id>", methods=['POST'])
+def voice(client_id):
+    db = load_db()
+    if client_id not in db:
+        resp = VoiceResponse()
+        resp.say("Erreur de configuration. Identifiant inconnu.", language='fr-FR')
+        return str(resp)
+        
+    config = db[client_id]
     resp = VoiceResponse()
     user_input = request.values.get('SpeechResult')
-    config = load_db()
     date_info = datetime.now().strftime("%A %d %B à %Hh%M")
     
-    system_prompt = f"Tu es l'IA de {config['nom']}. Sois bref (15 mots max). Si RDV validé, écris CONFIRMATION_RDV: [Détails]. Infos: {config['tarifs']}."
+    system_prompt = f"""
+    Tu es l'assistant de '{config['nom']}'. Activité: {config['activite']}.
+    Consigne: Sois bref (15 mots max).
+    Si le RDV est validé, commence par CONFIRMATION_RDV: [Détail].
+    Infos utiles: {config['tarifs']}. Date actuelle: {date_info}.
+    """
 
     if not user_input:
         ai_response = f"Bonjour, bienvenue chez {config['nom']}. Comment puis-je vous aider ?"
@@ -134,19 +167,20 @@ def voice():
             raw = chat.choices[0].message.content
             if "CONFIRMATION_RDV:" in raw:
                 parts = raw.split("CONFIRMATION_RDV:")
-                nouvel_rdv = {"date": datetime.now().strftime("%d/%m %H:%M"), "resume": parts[1].strip()}
+                nouvel_rdv = {"date": datetime.now().strftime("%d/%m à %H:%M"), "resume": parts[1].strip()}
                 config['rendez_vous'].append(nouvel_rdv)
-                save_db(config)
-                ai_response = parts[0] if parts[0] else "C'est noté !"
+                db[client_id] = config
+                save_db(db)
+                ai_response = parts[0] if parts[0] else "C'est noté pour votre rendez-vous !"
             else:
                 ai_response = raw
         except:
-            ai_response = "Je n'ai pas bien compris."
+            ai_response = "Un petit problème technique est survenu."
 
     gather = Gather(input='speech', language='fr-FR', timeout=1, speechTimeout='auto')
     gather.say(ai_response, language='fr-FR')
     resp.append(gather)
-    resp.redirect('/voice')
+    resp.redirect(f'/voice/{client_id}') # On redirige vers la route spécifique au client
     return str(resp)
 
 if __name__ == "__main__":
