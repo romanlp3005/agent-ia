@@ -11,7 +11,7 @@ app.config['SECRET_KEY'] = 'hairforme_secret_key_2024'
 
 # Configuration SQL
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///saas_database.db')
-if database_url.startswith("postgres://"):
+if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -68,8 +68,9 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('login'))
-    return render_template_string(f"""
-    {BASE_HEAD}
+    
+    html = """
+    BASE_HEAD_HERE
     <div class="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
             <div class="text-center mb-8">
@@ -88,7 +89,8 @@ def register():
             <p class="text-center mt-6 text-sm text-slate-500">Déjà inscrit ? <a href="/login" class="text-indigo-600 font-semibold">Connectez-vous</a></p>
         </div>
     </div>
-    """)
+    """.replace("BASE_HEAD_HERE", BASE_HEAD)
+    return render_template_string(html)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -97,8 +99,9 @@ def login():
         if user and user.password == request.form.get('password'):
             login_user(user)
             return redirect(url_for('dashboard'))
-    return render_template_string(f"""
-    {BASE_HEAD}
+    
+    html = """
+    BASE_HEAD_HERE
     <div class="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
             <div class="text-center mb-8">
@@ -113,7 +116,8 @@ def login():
             <p class="text-center mt-6 text-sm text-slate-500">Pas encore client ? <a href="/register" class="text-indigo-600 font-semibold">Inscrivez votre salon</a></p>
         </div>
     </div>
-    """)
+    """.replace("BASE_HEAD_HERE", BASE_HEAD)
+    return render_template_string(html)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
@@ -126,9 +130,8 @@ def dashboard():
         db.session.commit()
         return redirect(url_for('dashboard'))
 
-    # On utilise une variable normale au lieu d'une f-string pour éviter l'erreur {
-    html_content = """
-    BASE_REPLACEMENT
+    html = """
+    BASE_HEAD_HERE
     <div class="flex min-h-screen bg-slate-50">
         <div class="w-64 bg-slate-900 text-white flex flex-col p-6 hidden md:flex">
             <div class="flex items-center gap-3 mb-10 text-xl font-bold tracking-tight">
@@ -201,9 +204,9 @@ def dashboard():
             </div>
         </div>
     </div>
-    """.replace("BASE_REPLACEMENT", BASE_HEAD)
-    
-    return render_template_string(html_content)
+    """.replace("BASE_HEAD_HERE", BASE_HEAD)
+    return render_template_string(html)
+
 @app.route('/logout')
 @login_required
 def logout():
