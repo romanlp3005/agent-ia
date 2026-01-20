@@ -128,54 +128,74 @@ def dashboard():
     """.replace("BASE_HEAD_HERE", BASE_HEAD)
     return render_template_string(html)
 
-# --- MASTER ADMIN (TON INTERFACE) ---
 @app.route('/master-admin')
 @login_required
 def master_admin():
     if not current_user.is_admin: return "Accès refusé", 403
     users = User.query.all()
-    all_rdv = Appointment.query.order_by(Appointment.id.desc()).limit(20).all()
+    all_rdv = Appointment.query.order_by(Appointment.id.desc()).all()
     
     html = """
     BASE_HEAD_HERE
-    <div class="min-h-screen bg-slate-950 text-white p-12">
-        <div class="flex justify-between items-center mb-12">
-            <h1 class="text-4xl font-black text-indigo-500 tracking-tighter italic">DigitagPro MASTER</h1>
-            <a href="/logout" class="bg-slate-800 px-6 py-2 rounded-full text-sm">Quitter</a>
+    <div class="min-h-screen bg-slate-950 text-white p-8">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-4xl font-black text-indigo-500 italic">COMMAND CENTER</h1>
+                <p class="text-slate-400">Gestion totale de la flotte DigitagPro IA</p>
+            </div>
+            <a href="/logout" class="bg-red-500/20 text-red-400 px-6 py-2 rounded-full border border-red-500/50 hover:bg-red-500 hover:text-white transition">Déconnexion</a>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800">
-                <h2 class="text-xl font-bold mb-6 flex items-center gap-3 text-slate-400"><i class="fas fa-users"></i> Entreprises Inscrites ({{ users|length }})</h2>
-                <div class="space-y-4">
-                    {% for u in users %}
-                    <div class="flex justify-between items-center p-4 bg-slate-800/50 rounded-2xl">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div class="xl:col-span-2 space-y-6">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-building text-indigo-400"></i> Portefeuille Clients</h2>
+                {% for u in users %}
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500 transition">
+                    <div class="flex justify-between items-start mb-4">
                         <div>
-                            <div class="font-bold">{{ u.business_name }}</div>
-                            <div class="text-xs text-slate-500">{{ u.email }} ({{ u.activity_sector }})</div>
+                            <span class="bg-indigo-600 text-[10px] px-2 py-1 rounded uppercase font-bold tracking-widest">Client ID: {{ u.id }}</span>
+                            <h3 class="text-2xl font-bold mt-2">{{ u.business_name }}</h3>
+                            <p class="text-slate-500 text-sm">{{ u.email }} | Secteur: {{ u.activity_sector }}</p>
                         </div>
-                        <div class="text-indigo-400 font-mono text-sm">ID: {{ u.id }}</div>
+                        <div class="text-right">
+                            <p class="text-xs text-slate-500">Slots: {{ u.slots }}</p>
+                            <p class="text-xs text-slate-500">Durée: {{ u.avg_duration }}min</p>
+                        </div>
                     </div>
-                    {% endfor %}
+                    
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 mb-4">
+                        <p class="text-xs text-indigo-400 font-bold mb-2 uppercase">Prompt / Tarifs IA :</p>
+                        <p class="text-sm text-slate-300 italic">"{{ u.prices_info[:150] }}..."</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="alert('Fonctionnalité Edit ID {{ u.id }} bientôt dispo')" class="bg-slate-800 hover:bg-indigo-600 px-4 py-2 rounded-xl text-sm transition">Modifier Réglages</button>
+                        <a href="/voice/{{ u.id }}" target="_blank" class="bg-slate-800 hover:bg-green-600 px-4 py-2 rounded-xl text-sm transition text-center">Tester l'IA</a>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
             
-            <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800">
-                <h2 class="text-xl font-bold mb-6 flex items-center gap-3 text-slate-400"><i class="fas fa-phone-alt"></i> Flux d'appels global</h2>
-                <div class="space-y-4">
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-calendar-check text-green-400"></i> Flux de Réservations</h2>
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-h-[800px] overflow-y-auto space-y-4">
                     {% for rdv in all_rdv %}
-                    <div class="p-4 bg-slate-950 rounded-xl border-l-4 border-indigo-600">
-                        <div class="text-xs text-indigo-400 font-bold mb-1">{{ rdv.owner.business_name }}</div>
-                        <div class="text-sm font-medium">{{ rdv.details }}</div>
-                        <div class="text-[10px] text-slate-600 mt-2 italic">{{ rdv.date_str }}</div>
+                    <div class="p-4 bg-slate-950 rounded-2xl border-l-4 border-indigo-500">
+                        <div class="flex justify-between text-[10px] mb-2">
+                            <span class="font-bold text-indigo-400 uppercase">{{ rdv.owner.business_name }}</span>
+                            <span class="text-slate-600">{{ rdv.date_str }}</span>
+                        </div>
+                        <p class="text-sm text-slate-200">{{ rdv.details }}</p>
                     </div>
+                    {% else %}
+                    <p class="text-slate-600 text-center py-10 italic">Aucun rendez-vous pour le moment</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
     """.replace("BASE_HEAD_HERE", BASE_HEAD)
-    return render_template_string(html, users=users, all_rdv=all_rdv)
+    return render_template_string(html, users=users, all_rdv=all_rdv))
 
 # --- IA VOICE ---
 @app.route("/voice/<int:user_id>", methods=['POST'])
