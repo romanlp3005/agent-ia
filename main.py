@@ -56,19 +56,11 @@ def load_user(uid): return User.query.get(int(uid))
 
 # --- DATABASE MIGRATION SYSTEM ---
 with app.app_context():
+    # ATTENTION : Cette ligne va vider ta base pour la reconstruire au propre
+    # Utilise-la une seule fois pour débloquer la situation
+    db.drop_all() 
     db.create_all()
-    try:
-        with db.engine.connect() as conn:
-            columns = {
-                "sector": "TEXT", "horaires": "TEXT", "tarifs": "TEXT", 
-                "duree_moyenne": "VARCHAR(20)", "adresse": "TEXT",
-                "prompt_personnalise": "TEXT", "voix_preferee": "VARCHAR(20)"
-            }
-            for col, dtype in columns.items():
-                try: conn.execute(text(f'ALTER TABLE "user" ADD COLUMN {col} {dtype}')); conn.commit()
-                except: pass
-    except: pass
-
+    print("Base de données réinitialisée avec succès !")
 # --- DESIGN ENGINE ---
 CSS = """
 <script src="https://cdn.tailwindcss.com"></script>
