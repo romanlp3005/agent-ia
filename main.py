@@ -54,12 +54,7 @@ class Appointment(db.Model):
 @login_manager.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
-# --- DATABASE RESET & SYNC (POUR ÉVITER LES ERREURS DE COLONNES) ---
 with app.app_context():
-    # Décommenter db.drop_all() si vous voulez vider la base en cas d'erreur persistante
-    # db.drop_all() 
-    db.create_all()
-    print("Moteur de base de données synchronisé.")
 
 # --- DESIGN ENGINE (UI/UX PREMIUM) ---
 CSS = """
