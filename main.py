@@ -127,6 +127,7 @@ def profil():
         <h1 class="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">Profil Business</h1>
         <div class="badge badge-primary">ID Client : {current_user.id}</div>
     </div>
+    """
     
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div class="glass-card p-10 col-span-1 text-center">
