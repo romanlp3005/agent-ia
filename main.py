@@ -1,4 +1,4 @@
-﻿from flask import Flask, request, render_template_string, redirect, url_for, flash
+﻿﻿from flask import Flask, request, render_template_string, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from twilio.twiml.voice_response import VoiceResponse, Gather
@@ -109,6 +109,69 @@ def get_layout(content, active_page="dashboard"):
             <a href="/config-ia" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='config' else ''}"><i class="fas fa-wand-magic-sparkles w-5"></i> Configuration IA</a>
             <a href="/mon-agenda" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='agenda' else ''}"><i class="fas fa-calendar-day w-5"></i> Mon Agenda</a>
             <a href="/profil" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='profil' else ''}"><i class="fas fa-user-tie w-5"></i> Profil Business</a>
+
+# --- PAGE PROFIL BUSINESS ---
+@app.route('/profil', methods=['GET', 'POST'])
+@login_required
+def profil():
+    if request.method == 'POST':
+        current_user.business_name = request.form.get('bn')
+        current_user.email = request.form.get('em')
+        current_user.phone_pro = request.form.get('ph')
+        current_user.adresse = request.form.get('ad')
+        db.session.commit()
+        flash("Profil mis à jour !")
+
+    content = f"""
+    <div class="flex justify-between items-center mb-12">
+        <h1 class="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">Profil Business</h1>
+        <div class="badge badge-primary">ID Client : {current_user.id}</div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div class="glass-card p-10 col-span-1 text-center">
+            <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-black mx-auto mb-6 shadow-xl shadow-indigo-200">
+                {current_user.business_name[0] if current_user.business_name else 'B'}
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 mb-2">{current_user.business_name}</h2>
+            <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-8">{current_user.sector}</p>
+            <div class="space-y-4 pt-6 border-t border-slate-100 text-left">
+                <div class="flex items-center gap-4 text-sm font-medium text-slate-600">
+                    <i class="fas fa-envelope text-indigo-500 w-5"></i> {current_user.email}
+                </div>
+                <div class="flex items-center gap-4 text-sm font-medium text-slate-600">
+                    <i class="fas fa-phone-alt text-indigo-500 w-5"></i> {current_user.phone_pro}
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card p-10 col-span-2">
+            <h3 class="text-xl font-black mb-8 italic text-indigo-600 underline underline-offset-8 decoration-2">Informations Générales</h3>
+            <form method="POST" class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nom commercial</label>
+                        <input name="bn" value="{current_user.business_name}" class="input-pro">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email de contact</label>
+                        <input name="em" value="{current_user.email}" class="input-pro">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Téléphone Professionnel</label>
+                    <input name="ph" value="{current_user.phone_pro}" class="input-pro">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Adresse complète du siège</label>
+                    <input name="ad" value="{current_user.adresse}" class="input-pro">
+                </div>
+                <button class="w-full btn-grad text-white p-5 rounded-[22px] font-black shadow-lg uppercase tracking-widest text-xs mt-4">Mettre à jour mes infos</button>
+            </form>
+        </div>
+    </div>
+    """
+    return render_template_string(get_layout(content, "profil"))
             
             {f'''<div class="pt-10 mb-6 border-t border-slate-800/50"></div>
             <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em] ml-4 mb-6">Expert Mode</p>
