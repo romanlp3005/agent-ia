@@ -110,7 +110,6 @@ def get_layout(content, active_page="dashboard"):
             <a href="/mon-agenda" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='agenda' else ''}"><i class="fas fa-calendar-day w-5"></i> Mon Agenda</a>
             <a href="/profil" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='profil' else ''}"><i class="fas fa-user-tie w-5"></i> Profil Business</a>
 
-# --- PAGE PROFIL BUSINESS (VERSION SECURISEE SANS ACCENTS) ---
 @app.route('/profil', methods=['GET', 'POST'])
 @login_required
 def profil():
@@ -122,58 +121,22 @@ def profil():
         db.session.commit()
         flash("Profil mis a jour !")
 
-    content = f"""
-    <div class="flex justify-between items-center mb-12">
-        <h1 class="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">Profil Business</h1>
-        <div class="badge badge-primary">ID Client : {current_user.id}</div>
-    </div>
-    """
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div class="glass-card p-10 col-span-1 text-center">
-            <div class="w-24 h-24 bg-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-black mx-auto mb-6 shadow-xl shadow-indigo-200">
-                {current_user.business_name[0] if current_user.business_name else 'B'}
-            </div>
-            <h2 class="text-2xl font-black text-slate-900 mb-2">{current_user.business_name}</h2>
-            <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-8">{current_user.sector}</p>
-            <div class="space-y-4 pt-6 border-t border-slate-100 text-left">
-                <div class="flex items-center gap-4 text-sm font-medium text-slate-600">
-                    <i class="fas fa-envelope text-indigo-500 w-5"></i> {current_user.email}
-                </div>
-                <div class="flex items-center gap-4 text-sm font-medium text-slate-600">
-                    <i class="fas fa-phone-alt text-indigo-500 w-5"></i> {current_user.phone_pro}
-                </div>
-            </div>
-        </div>
+    # Utilisation de f''' (simples quotes triples) pour eviter les conflits avec les doubles quotes du HTML
+    content = f'''
+    <div style="padding: 20px; font-family: sans-serif;">
+        <h1 style="text-transform: uppercase;">Profil Business</h1>
+        <p>ID Client : {current_user.id}</p>
         
-        <div class="glass-card p-10 col-span-2">
-            <h3 class="text-xl font-black mb-8 italic text-indigo-600 underline underline-offset-8 decoration-2">Informations Business</h3>
-            <form method="POST" class="space-y-6">
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nom commercial</label>
-                        <input name="bn" value="{current_user.business_name}" class="input-pro">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email de contact</label>
-                        <input name="em" value="{current_user.email}" class="input-pro">
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Telephone Professionnel</label>
-                    <input name="ph" value="{current_user.phone_pro}" class="input-pro">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Adresse Siege</label>
-                    <input name="ad" value="{current_user.adresse}" class="input-pro">
-                </div>
-                <button class="w-full btn-grad text-white p-5 rounded-[22px] font-black shadow-lg uppercase tracking-widest text-xs mt-4">Mettre a jour</button>
-            </form>
-        </div>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
+            <input name="bn" value="{current_user.business_name or ''}" placeholder="Nom du Business" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <input name="em" value="{current_user.email or ''}" placeholder="Email" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <input name="ph" value="{current_user.phone_pro or ''}" placeholder="Telephone" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <input name="ad" value="{current_user.adresse or ''}" placeholder="Adresse" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <button type="submit" style="background: black; color: white; padding: 15px; border-radius: 8px; cursor: pointer;">METTRE A JOUR</button>
+        </form>
     </div>
-    """
-    return render_template_string(get_layout(content, "profil"))
-            
+    '''
+    return render_template_string(get_layout(content, "profil"))            
             {f'''<div class="pt-10 mb-6 border-t border-slate-800/50"></div>
             <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em] ml-4 mb-6">Expert Mode</p>
             <a href="/master-admin" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-admin' else ''} text-white"><i class="fas fa-shield-halved w-5 text-indigo-400"></i> Master Control</a>
