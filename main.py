@@ -44,8 +44,30 @@ class Appointment(db.Model):
 @login_manager.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
-with app.app_context(): db.create_all()
+from sqlalchemy import text
 
+with app.app_context():
+    db.create_all()
+    # Script de secours pour ajouter les colonnes manquantes sans tout casser
+    try:
+        with db.engine.connect() as conn:
+            # Liste des nouvelles colonnes à vérifier
+            cols = {
+                "horaires": "TEXT",
+                "tarifs": "TEXT",
+                "temps_prestation": "VARCHAR(50)",
+                "instructions_speciales": "TEXT"
+            }
+            for col, type in cols.items():
+                try:
+                    conn.execute(text(f'ALTER TABLE "user" ADD COLUMN {col} {type}'))
+                    conn.commit()
+                    print(f"Colonne {col} ajoutée avec succès.")
+                except Exception:
+                    # La colonne existe déjà, on ignore
+                    pass
+    except Exception as e:
+        print(f"Erreur lors de la mise à jour des colonnes : {e}")
 # --- DESIGN SYSTEM ---
 STYLE = """
 <script src="https://cdn.tailwindcss.com"></script>
