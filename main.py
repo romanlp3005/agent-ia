@@ -59,14 +59,22 @@ with app.app_context():
     db.create_all()
     try:
         with db.engine.connect() as conn:
-            cols = {"sector": "TEXT", "horaires": "TEXT", "tarifs": "TEXT", "duree_moyenne": "VARCHAR(20)", "adresse": "TEXT", "prompt_personnalise": "TEXT"}
-            for col, dtype in cols.items():
+            # 1. Mise à jour de la table User
+            cols_user = {"sector": "TEXT", "horaires": "TEXT", "tarifs": "TEXT", "duree_moyenne": "VARCHAR(20)", "adresse": "TEXT", "prompt_personnalise": "TEXT"}
+            for col, dtype in cols_user.items():
                 try:
                     conn.execute(text(f'ALTER TABLE "user" ADD COLUMN {col} {dtype}'))
                     conn.commit()
                 except: pass
+            
+            # 2. MISE À JOUR DE LA TABLE APPOINTMENT (Celle qui bloque maintenant)
+            cols_app = {"client_name": "VARCHAR(100)", "status": "VARCHAR(20)"}
+            for col, dtype in cols_app.items():
+                try:
+                    conn.execute(text(f'ALTER TABLE "appointment" ADD COLUMN {col} {dtype}'))
+                    conn.commit()
+                except: pass
     except: pass
-
 # --- DESIGN SYSTEM ---
 CSS = """
 <script src="https://cdn.tailwindcss.com"></script>
