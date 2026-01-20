@@ -56,146 +56,92 @@ BASE_HEAD = """
 <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
 """
 
-# --- ROUTES AUTH ---
-@app.route('/')
-def home(): return redirect(url_for('login'))
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        user = User(email=request.form.get('email'), password=request.form.get('password'), 
-                    business_name=request.form.get('business_name'), activity_sector=request.form.get('activity_sector'))
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('login'))
-    return render_template_string(f"{BASE_HEAD} <div class='min-h-screen bg-slate-50 flex items-center justify-center'> <div class='max-w-md w-full bg-white p-10 rounded-3xl shadow-xl'> <h2 class='text-2xl font-bold mb-6 text-center'>Inscription DigitagPro IA</h2> <form method='POST' class='space-y-4'> <input name='business_name' placeholder='Nom Entreprise' class='w-full p-3 bg-slate-100 rounded-xl' required> <input name='activity_sector' placeholder='Secteur (ex: Garage)' class='w-full p-3 bg-slate-100 rounded-xl' required> <input name='email' type='email' placeholder='Email' class='w-full p-3 bg-slate-100 rounded-xl' required> <input name='password' type='password' placeholder='Mot de passe' class='w-full p-3 bg-slate-100 rounded-xl' required> <button class='w-full bg-indigo-600 text-white p-4 rounded-xl font-bold'>Créer mon espace</button> </form> </div> </div>")
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = User.query.filter_by(email=request.form.get('email')).first()
-        if user and user.password == request.form.get('password'):
-            login_user(user)
-            return redirect(url_for('master_admin' if user.is_admin else 'dashboard'))
-    return render_template_string(f"{BASE_HEAD} <div class='min-h-screen bg-slate-50 flex items-center justify-center'> <div class='max-w-md w-full bg-white p-10 rounded-3xl shadow-xl'> <h2 class='text-2xl font-bold mb-6 text-center'>Connexion DigitagPro</h2> <form method='POST' class='space-y-4'> <input name='email' type='email' placeholder='Email' class='w-full p-3 bg-slate-100 rounded-xl'> <input name='password' type='password' placeholder='Mot de passe' class='w-full p-3 bg-slate-100 rounded-xl'> <button class='w-full bg-slate-900 text-white p-4 rounded-xl font-bold'>Entrer</button> </form> </div> </div>")
-
-# --- DASHBOARD CLIENT ---
-@app.route('/dashboard', methods=['GET', 'POST'])
-@login_required
-def dashboard():
-    if request.method == 'POST':
-        current_user.business_name = request.form.get('business_name')
-        current_user.slots = int(request.form.get('slots'))
-        current_user.avg_duration = int(request.form.get('avg_duration'))
-        current_user.prices_info = request.form.get('prices_info')
-        db.session.commit()
-        return redirect(url_for('dashboard'))
-    
-    html = """
-    BASE_HEAD_HERE
-    <div class="flex min-h-screen bg-slate-50">
-        <div class="w-64 bg-slate-900 text-white p-8 flex flex-col">
-            <div class="font-bold text-xl mb-10">DigitagPro <span class="text-indigo-400">IA</span></div>
-            <a href="/logout" class="mt-auto text-slate-400 hover:text-white">Déconnexion</a>
-        </div>
-        <div class="flex-1 p-10">
-            <h1 class="text-3xl font-black mb-8">{{ current_user.business_name }}</h1>
-            <div class="grid grid-cols-2 gap-10">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold mb-6 italic">Réglages de l'Agent IA</h3>
-                    <form method="POST" class="space-y-4">
-                        <input name="business_name" value="{{ current_user.business_name }}" class="w-full p-3 bg-slate-50 rounded-xl border">
-                        <div class="flex gap-4">
-                            <input name="slots" type="number" value="{{ current_user.slots }}" class="w-1/2 p-3 bg-slate-50 rounded-xl border">
-                            <input name="avg_duration" type="number" value="{{ current_user.avg_duration }}" class="w-1/2 p-3 bg-slate-50 rounded-xl border">
-                        </div>
-                        <textarea name="prices_info" class="w-full p-3 bg-slate-50 rounded-xl border" rows="4">{{ current_user.prices_info }}</textarea>
-                        <button class="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold">Sauvegarder</button>
-                    </form>
-                    <div class="mt-6 p-4 bg-indigo-50 rounded-xl text-indigo-700 text-sm font-mono text-center">
-                        Webhook : /voice/{{ current_user.id }}
-                    </div>
-                </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold mb-6 italic">Appels Récents</h3>
-                    {% for rdv in current_user.appointments|reverse %}
-                    <div class="p-4 border-b last:border-0">{{ rdv.details }} <br> <span class="text-xs text-slate-400">{{ rdv.date_str }}</span></div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    """.replace("BASE_HEAD_HERE", BASE_HEAD)
-    return render_template_string(html)
-
-@app.route('/master-admin')
+# --- ROUTE MASTER ADMIN AVEC CONTRÔLE TOTAL ---
+@app.route('/master-admin', methods=['GET', 'POST'])
 @login_required
 def master_admin():
     if not current_user.is_admin: return "Accès refusé", 403
+    
+    # Action pour supprimer un utilisateur
+    if request.args.get('delete_user'):
+        u_to_del = User.query.get(request.args.get('delete_user'))
+        if u_to_del and not u_to_del.is_admin:
+            db.session.delete(u_to_del)
+            db.session.commit()
+            return redirect(url_for('master_admin'))
+
+    # Action pour mettre à jour les infos d'un client en direct
+    if request.method == 'POST' and 'update_client_id' in request.form:
+        client_id = request.form.get('update_client_id')
+        target_user = User.query.get(client_id)
+        if target_user:
+            target_user.business_name = request.form.get('b_name')
+            target_user.prices_info = request.form.get('p_info')
+            db.session.commit()
+            return redirect(url_for('master_admin'))
+
     users = User.query.all()
     all_rdv = Appointment.query.order_by(Appointment.id.desc()).all()
     
     html = """
     BASE_HEAD_HERE
-    <div class="min-h-screen bg-slate-950 text-white p-8">
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-4xl font-black text-indigo-500 italic">COMMAND CENTER</h1>
-                <p class="text-slate-400">Gestion totale de la flotte DigitagPro IA</p>
-            </div>
-            <a href="/logout" class="bg-red-500/20 text-red-400 px-6 py-2 rounded-full border border-red-500/50 hover:bg-red-500 hover:text-white transition">Déconnexion</a>
+    <div class="min-h-screen bg-[#0a0c14] text-white p-8">
+        <div class="flex justify-between items-center mb-12">
+            <h1 class="text-4xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent italic">DIGITAGPRO COMMAND CENTER</h1>
+            <a href="/logout" class="bg-slate-800 px-6 py-2 rounded-full text-sm hover:bg-red-600 transition">Quitter la passerelle</a>
         </div>
         
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            <div class="xl:col-span-2 space-y-6">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-building text-indigo-400"></i> Portefeuille Clients</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div class="lg:col-span-2 space-y-8">
+                <h2 class="text-xl font-bold text-slate-400 flex items-center gap-3"><i class="fas fa-robot"></i> Agents IA en Service ({{ users|length }})</h2>
+                
                 {% for u in users %}
-                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-indigo-500 transition">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <span class="bg-indigo-600 text-[10px] px-2 py-1 rounded uppercase font-bold tracking-widest">Client ID: {{ u.id }}</span>
-                            <h3 class="text-2xl font-bold mt-2">{{ u.business_name }}</h3>
-                            <p class="text-slate-500 text-sm">{{ u.email }} | Secteur: {{ u.activity_sector }}</p>
+                <div class="bg-[#111420] border border-slate-800 p-8 rounded-[2rem] shadow-2xl">
+                    <form method="POST" class="space-y-4">
+                        <input type="hidden" name="update_client_id" value="{{ u.id }}">
+                        
+                        <div class="flex justify-between items-start">
+                            <div class="w-full">
+                                <label class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Nom de l'Entreprise (ID: {{ u.id }})</label>
+                                <input name="b_name" value="{{ u.business_name }}" class="bg-transparent text-2xl font-black w-full focus:outline-none focus:border-b border-indigo-500 mb-4">
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="/voice/{{ u.id }}" class="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition"><i class="fas fa-phone"></i></a>
+                                {% if not u.is_admin %}
+                                <a href="/master-admin?delete_user={{ u.id }}" onclick="return confirm('Supprimer ce client ?')" class="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition"><i class="fas fa-trash"></i></a>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-xs text-slate-500">Slots: {{ u.slots }}</p>
-                            <p class="text-xs text-slate-500">Durée: {{ u.avg_duration }}min</p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 mb-4">
-                        <p class="text-xs text-indigo-400 font-bold mb-2 uppercase">Prompt / Tarifs IA :</p>
-                        <p class="text-sm text-slate-300 italic">"{{ u.prices_info[:150] }}..."</p>
-                    </div>
 
-                    <div class="flex gap-3">
-                        <button onclick="alert('Fonctionnalité Edit ID {{ u.id }} bientôt dispo')" class="bg-slate-800 hover:bg-indigo-600 px-4 py-2 rounded-xl text-sm transition">Modifier Réglages</button>
-                        <a href="/voice/{{ u.id }}" target="_blank" class="bg-slate-800 hover:bg-green-600 px-4 py-2 rounded-xl text-sm transition text-center">Tester l'IA</a>
-                    </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Configuration de l'IA (Prompt & Tarifs)</label>
+                            <textarea name="p_info" rows="3" class="w-full bg-[#0a0c14] border border-slate-800 rounded-2xl p-4 mt-2 text-sm text-slate-300 focus:border-indigo-500 outline-none">{{ u.prices_info }}</textarea>
+                        </div>
+
+                        <button class="w-full bg-indigo-600/10 border border-indigo-600/50 text-indigo-400 py-3 rounded-2xl font-bold hover:bg-indigo-600 hover:text-white transition">Appliquer les modifications</button>
+                    </form>
                 </div>
                 {% endfor %}
             </div>
-            
-            <div class="space-y-6">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-calendar-check text-green-400"></i> Flux de Réservations</h2>
-                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-h-[800px] overflow-y-auto space-y-4">
+
+            <div>
+                <h2 class="text-xl font-bold text-slate-400 mb-8 flex items-center gap-3"><i class="fas fa-broadcast-tower"></i> Flux d'appels live</h2>
+                <div class="space-y-4 max-h-[1000px] overflow-y-auto pr-2">
                     {% for rdv in all_rdv %}
-                    <div class="p-4 bg-slate-950 rounded-2xl border-l-4 border-indigo-500">
-                        <div class="flex justify-between text-[10px] mb-2">
-                            <span class="font-bold text-indigo-400 uppercase">{{ rdv.owner.business_name }}</span>
+                    <div class="p-5 bg-[#111420] border-l-4 border-indigo-500 rounded-2xl">
+                        <div class="flex justify-between text-[10px] mb-2 font-bold uppercase">
+                            <span class="text-indigo-400">{{ rdv.owner.business_name }}</span>
                             <span class="text-slate-600">{{ rdv.date_str }}</span>
                         </div>
-                        <p class="text-sm text-slate-200">{{ rdv.details }}</p>
+                        <p class="text-sm text-slate-300 leading-relaxed">{{ rdv.details }}</p>
                     </div>
-                    {% else %}
-                    <p class="text-slate-600 text-center py-10 italic">Aucun rendez-vous pour le moment</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
     """.replace("BASE_HEAD_HERE", BASE_HEAD)
-    return render_template_string(html, users=users, all_rdv=all_rdv))
+    return render_template_string(html, users=users, all_rdv=all_rdv)
 
 # --- IA VOICE ---
 @app.route("/voice/<int:user_id>", methods=['POST'])
