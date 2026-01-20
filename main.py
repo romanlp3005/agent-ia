@@ -47,28 +47,63 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
-# --- DESIGN ---
+# --- UI COMPONENTS ---
 BASE_HEAD = """
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .sidebar-link:hover { background: rgba(99, 102, 241, 0.1); border-right: 3px solid #6366f1; }
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+</style>
 """
 
-# --- ROUTES AUTH ---
+SIDEBAR = """
+<div class="fixed w-72 h-screen bg-[#020617] border-r border-slate-800 flex flex-col p-6">
+    <div class="flex items-center gap-3 mb-12 px-2">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <i class="fas fa-microchip text-white"></i>
+        </div>
+        <span class="text-xl font-extrabold tracking-tight">DigitagPro <span class="text-indigo-500 text-sm">IA</span></span>
+    </div>
+    
+    <nav class="flex-1 space-y-2">
+        <a href="/master-admin" class="flex items-center gap-3 p-3 rounded-xl sidebar-link text-indigo-400 bg-indigo-500/5 font-medium">
+            <i class="fas fa-th-large w-5"></i> Dashboard Master
+        </a>
+        <a href="#" class="flex items-center gap-3 p-3 rounded-xl sidebar-link text-slate-400 hover:text-white transition">
+            <i class="fas fa-users w-5"></i> Clients
+        </a>
+        <a href="#" class="flex items-center gap-3 p-3 rounded-xl sidebar-link text-slate-400 hover:text-white transition">
+            <i class="fas fa-phone-volume w-5"></i> Logs d'appels
+        </a>
+        <a href="#" class="flex items-center gap-3 p-3 rounded-xl sidebar-link text-slate-400 hover:text-white transition">
+            <i class="fas fa-cog w-5"></i> Paramètres
+        </a>
+    </nav>
+
+    <div class="mt-auto pt-6 border-t border-slate-800">
+        <div class="flex items-center gap-3 mb-6 px-2">
+            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold uppercase">RL</div>
+            <div class="text-xs">
+                <p class="font-bold">Roman L.</p>
+                <p class="text-slate-500 italic">Administrateur</p>
+            </div>
+        </div>
+        <a href="/logout" class="flex items-center gap-3 p-3 rounded-xl text-red-400 hover:bg-red-500/10 transition font-medium">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+        </a>
+    </div>
+</div>
+"""
+
+# --- ROUTES ---
 @app.route('/')
 def home(): return redirect(url_for('login'))
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        user = User(email=request.form.get('email'), password=request.form.get('password'), 
-                    business_name=request.form.get('business_name'), activity_sector=request.form.get('activity_sector'))
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('login'))
-    return render_template_string(f"{BASE_HEAD} <div class='min-h-screen bg-slate-50 flex items-center justify-center'> <div class='max-w-md w-full bg-white p-10 rounded-3xl shadow-xl'> <h2 class='text-2xl font-bold mb-6 text-center'>Inscription DigitagPro IA</h2> <form method='POST' class='space-y-4'> <input name='business_name' placeholder='Nom Entreprise' class='w-full p-3 bg-slate-100 rounded-xl' required> <input name='activity_sector' placeholder='Secteur (ex: Garage)' class='w-full p-3 bg-slate-100 rounded-xl' required> <input name='email' type='email' placeholder='Email' class='w-full p-3 bg-slate-100 rounded-xl' required> <input name='password' type='password' placeholder='Mot de passe' class='w-full p-3 bg-slate-100 rounded-xl' required> <button class='w-full bg-indigo-600 text-white p-4 rounded-xl font-bold'>Créer mon espace</button> </form> </div> </div>")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -77,135 +112,117 @@ def login():
         if user and user.password == request.form.get('password'):
             login_user(user)
             return redirect(url_for('master_admin' if user.is_admin else 'dashboard'))
-    return render_template_string(f"{BASE_HEAD} <div class='min-h-screen bg-slate-50 flex items-center justify-center'> <div class='max-w-md w-full bg-white p-10 rounded-3xl shadow-xl'> <h2 class='text-2xl font-bold mb-6 text-center'>Connexion DigitagPro</h2> <form method='POST' class='space-y-4'> <input name='email' type='email' placeholder='Email' class='w-full p-3 bg-slate-100 rounded-xl'> <input name='password' type='password' placeholder='Mot de passe' class='w-full p-3 bg-slate-100 rounded-xl'> <button class='w-full bg-slate-900 text-white p-4 rounded-xl font-bold'>Entrer</button> </form> </div> </div>")
+    return render_template_string(f"{BASE_HEAD} <div class='min-h-screen bg-slate-950 flex items-center justify-center p-6'> <div class='max-w-md w-full glass-card p-10 rounded-[2.5rem] shadow-2xl'> <div class='text-center mb-10'> <h2 class='text-3xl font-black mb-2'>Connexion</h2> <p class='text-slate-400 text-sm'>Accédez à votre passerelle DigitagPro</p> </div> <form method='POST' class='space-y-5'> <div><label class='text-xs font-bold text-slate-500 uppercase ml-1 mb-2 block'>Email Business</label><input name='email' type='email' class='w-full p-4 bg-slate-900/50 border border-slate-700 rounded-2xl focus:border-indigo-500 outline-none transition' placeholder='admin@digitag.pro'></div> <div><label class='text-xs font-bold text-slate-500 uppercase ml-1 mb-2 block'>Mot de passe</label><input name='password' type='password' class='w-full p-4 bg-slate-900/50 border border-slate-700 rounded-2xl focus:border-indigo-500 outline-none transition' placeholder='••••••••'></div> <button class='w-full bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-2xl font-bold shadow-lg shadow-indigo-500/20 transition transform hover:-translate-y-1'>Se connecter</button> </form> </div> </div>")
 
 @app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
+def logout(): logout_user(); return redirect(url_for('login'))
 
-# --- DASHBOARD CLIENT ---
-@app.route('/dashboard', methods=['GET', 'POST'])
-@login_required
-def dashboard():
-    if request.method == 'POST':
-        current_user.business_name = request.form.get('business_name')
-        current_user.slots = int(request.form.get('slots'))
-        current_user.avg_duration = int(request.form.get('avg_duration'))
-        current_user.prices_info = request.form.get('prices_info')
-        db.session.commit()
-        return redirect(url_for('dashboard'))
-    
-    html = """
-    BASE_HEAD_HERE
-    <div class="flex min-h-screen bg-slate-50">
-        <div class="w-64 bg-slate-900 text-white p-8 flex flex-col">
-            <div class="font-bold text-xl mb-10 text-indigo-400">DigitagPro IA</div>
-            <a href="/logout" class="mt-auto text-slate-400 hover:text-white font-bold">Déconnexion</a>
-        </div>
-        <div class="flex-1 p-10">
-            <h1 class="text-3xl font-black mb-8">{{ current_user.business_name }}</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold mb-6 italic text-slate-400">Configuration de votre Agent</h3>
-                    <form method="POST" class="space-y-4">
-                        <input name="business_name" value="{{ current_user.business_name }}" class="w-full p-3 bg-slate-50 rounded-xl border">
-                        <textarea name="prices_info" class="w-full p-3 bg-slate-50 rounded-xl border" rows="5">{{ current_user.prices_info }}</textarea>
-                        <button class="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold">Enregistrer</button>
-                    </form>
-                </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold mb-6 italic text-slate-400">Rendez-vous récents</h3>
-                    {% for rdv in current_user.appointments|reverse %}
-                    <div class="p-4 border-b last:border-0"><span class="font-bold text-indigo-600">{{ rdv.date_str }}</span> : {{ rdv.details }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    """.replace("BASE_HEAD_HERE", BASE_HEAD)
-    return render_template_string(html)
-
-# --- MASTER ADMIN ---
 @app.route('/master-admin', methods=['GET', 'POST'])
 @login_required
 def master_admin():
     if not current_user.is_admin: return "Accès refusé", 403
     
     if request.args.get('delete_user'):
-        u_to_del = User.query.get(request.args.get('delete_user'))
-        if u_to_del and not u_to_del.is_admin:
-            db.session.delete(u_to_del); db.session.commit()
-            return redirect(url_for('master_admin'))
+        u = User.query.get(request.args.get('delete_user'))
+        if u and not u.is_admin: db.session.delete(u); db.session.commit()
+        return redirect(url_for('master_admin'))
 
     if request.method == 'POST' and 'update_client_id' in request.form:
-        target_user = User.query.get(request.form.get('update_client_id'))
-        if target_user:
-            target_user.business_name = request.form.get('b_name')
-            target_user.prices_info = request.form.get('p_info')
-            db.session.commit()
-            return redirect(url_for('master_admin'))
+        u = User.query.get(request.form.get('update_client_id'))
+        if u: u.business_name = request.form.get('b_name'); u.prices_info = request.form.get('p_info'); db.session.commit()
+        return redirect(url_for('master_admin'))
 
     users = User.query.all()
     all_rdv = Appointment.query.order_by(Appointment.id.desc()).all()
     
     html = """
     BASE_HEAD_HERE
-    <div class="min-h-screen bg-[#0a0c14] text-white p-8">
-        <div class="flex justify-between items-center mb-12">
-            <h1 class="text-4xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">DIGITAGPRO COMMAND CENTER</h1>
-            <a href="/logout" class="bg-slate-800 px-6 py-2 rounded-full text-sm">Quitter</a>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <div class="lg:col-span-2 space-y-8">
-                {% for u in users %}
-                <div class="bg-[#111420] border border-slate-800 p-8 rounded-[2rem]">
-                    <form method="POST" class="space-y-4">
-                        <input type="hidden" name="update_client_id" value="{{ u.id }}">
-                        <div class="flex justify-between">
-                            <input name="b_name" value="{{ u.business_name }}" class="bg-transparent text-2xl font-black focus:outline-none text-indigo-400">
-                            <div class="flex gap-2">
-                                <a href="/master-admin?delete_user={{ u.id }}" class="text-red-500 p-2"><i class="fas fa-trash"></i></a>
+    <div class="flex">
+        SIDEBAR_HERE
+        <main class="ml-72 flex-1 p-12 bg-slate-950 min-h-screen">
+            <header class="flex justify-between items-center mb-12">
+                <div>
+                    <h1 class="text-3xl font-black">Dashboard Master</h1>
+                    <p class="text-slate-400 text-sm mt-1">Supervision globale des agents IA</p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="glass-card px-6 py-3 rounded-2xl text-center">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase">Clients</p>
+                        <p class="text-xl font-black text-indigo-400">{{ users|length }}</p>
+                    </div>
+                    <div class="glass-card px-6 py-3 rounded-2xl text-center">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase">Appels Totaux</p>
+                        <p class="text-xl font-black text-emerald-400">{{ all_rdv|length }}</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-12">
+                <div class="xl:col-span-2 space-y-8">
+                    <h2 class="text-lg font-bold flex items-center gap-2 mb-4"><i class="fas fa-bolt text-yellow-400"></i> Agents en Temps Réel</h2>
+                    {% for u in users %}
+                    <div class="glass-card rounded-[2rem] p-8 transition hover:shadow-indigo-500/5 hover:shadow-2xl">
+                        <form method="POST">
+                            <input type="hidden" name="update_client_id" value="{{ u.id }}">
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="w-full">
+                                    <span class="text-[10px] bg-slate-800 text-slate-400 px-3 py-1 rounded-full font-bold uppercase tracking-widest">ID #{{ u.id }}</span>
+                                    <input name="b_name" value="{{ u.business_name }}" class="bg-transparent text-2xl font-black w-full mt-2 focus:outline-none focus:text-indigo-400 border-b border-transparent focus:border-indigo-500/30 transition">
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="/voice/{{ u.id }}" class="w-10 h-10 flex items-center justify-center bg-indigo-500/10 text-indigo-400 rounded-xl hover:bg-indigo-600 hover:text-white transition"><i class="fas fa-phone-alt"></i></a>
+                                    {% if not u.is_admin %}<a href="/master-admin?delete_user={{ u.id }}" class="w-10 h-10 flex items-center justify-center bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition"><i class="fas fa-trash-alt"></i></a>{% endif %}
+                                </div>
                             </div>
+                            <div class="mb-6">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Prompt d'expertise (Tarifs & Savoir-faire)</label>
+                                <textarea name="p_info" rows="3" class="w-full bg-slate-900/40 border border-slate-800 rounded-2xl p-5 text-sm text-slate-300 focus:border-indigo-500/50 outline-none transition">{{ u.prices_info }}</textarea>
+                            </div>
+                            <button class="w-full bg-indigo-600/10 border border-indigo-600/30 text-indigo-400 py-3 rounded-2xl font-bold hover:bg-indigo-600 hover:text-white transition">Appliquer les modifications</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="space-y-8">
+                    <h2 class="text-lg font-bold flex items-center gap-2 mb-4"><i class="fas fa-list text-indigo-400"></i> Activité Globale</h2>
+                    <div class="glass-card rounded-[2rem] p-6 max-h-[900px] overflow-y-auto space-y-4">
+                        {% for rdv in all_rdv %}
+                        <div class="p-4 bg-slate-900/40 rounded-2xl border-l-2 border-indigo-500/50">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">{{ rdv.owner.business_name }}</span>
+                                <span class="text-[10px] text-slate-500">{{ rdv.date_str }}</span>
+                            </div>
+                            <p class="text-sm text-slate-300">{{ rdv.details }}</p>
                         </div>
-                        <textarea name="p_info" rows="3" class="w-full bg-[#0a0c14] border border-slate-800 rounded-2xl p-4 text-sm">{{ u.prices_info }}</textarea>
-                        <button class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-bold">Appliquer</button>
-                    </form>
+                        {% else %}
+                        <div class="text-center py-20 text-slate-600">
+                            <i class="fas fa-clock text-4xl mb-4 opacity-20"></i>
+                            <p class="text-sm">En attente d'appels...</p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                {% endfor %}
             </div>
-            <div class="space-y-4">
-                <h2 class="font-bold text-slate-400 uppercase tracking-widest text-sm">Activité Live</h2>
-                {% for rdv in all_rdv %}
-                <div class="p-4 bg-[#111420] rounded-2xl border-l-2 border-indigo-500">
-                    <p class="text-[10px] font-bold text-indigo-400">{{ rdv.owner.business_name }}</p>
-                    <p class="text-sm">{{ rdv.details }}</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+        </main>
     </div>
-    """.replace("BASE_HEAD_HERE", BASE_HEAD)
+    """.replace("BASE_HEAD_HERE", BASE_HEAD).replace("SIDEBAR_HERE", SIDEBAR)
     return render_template_string(html, users=users, all_rdv=all_rdv)
 
 @app.route('/devenir-master-vite')
 def dev_master():
     user = User.query.filter_by(email='romanlayani@gmail.com').first()
-    if user:
-        user.is_admin = True
-        db.session.commit()
-        return "Tu es maintenant le Maitre du systeme !"
-    return "Utilisateur non trouve"
+    if user: user.is_admin = True; db.session.commit(); return "Status: MASTER"
+    return "Not Found"
 
-# --- IA VOICE ---
+# --- IA VOICE (UNCHANGED) ---
 @app.route("/voice/<int:user_id>", methods=['POST'])
 def voice(user_id):
     commercant = User.query.get_or_404(user_id)
     resp = VoiceResponse()
     user_input = request.values.get('SpeechResult')
     system_prompt = f"Tu es l'assistant IA de '{commercant.business_name}'. Tarifs/Infos: {commercant.prices_info}. Si RDV validé, commence par CONFIRMATION_RDV: [Détail]."
-    if not user_input:
-        ai_response = f"Bonjour, bienvenue chez {commercant.business_name}, comment puis-je vous aider ?"
+    if not user_input: ai_response = f"Bonjour, bienvenue chez {commercant.business_name}, comment puis-je vous aider ?"
     else:
         chat = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_input}])
         raw = chat.choices[0].message.content
