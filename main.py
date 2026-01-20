@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, redirect, url_for, flash
+﻿from flask import Flask, request, render_template_string, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from twilio.twiml.voice_response import VoiceResponse, Gather
@@ -22,7 +22,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-# --- MODÈLES DE DONNÉES ARCHITECTURÉS (25 000+ CARACTÈRES READY) ---
+# --- MODÃˆLES DE DONNÃ‰ES ARCHITECTURÃ‰S (25 000+ CARACTÃˆRES READY) ---
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -33,13 +33,13 @@ class User(UserMixin, db.Model):
     # Configuration Business et Niche
     sector = db.Column(db.String(100), default="Services Professionnels")
     horaires = db.Column(db.Text, default="Lundi au Vendredi: 09:00 - 18:00")
-    tarifs = db.Column(db.Text, default="Consultation : 60€ | Forfait : sur devis")
+    tarifs = db.Column(db.Text, default="Consultation : 60â‚¬ | Forfait : sur devis")
     duree_moyenne = db.Column(db.String(50), default="45 minutes")
     adresse = db.Column(db.String(255), default="1 Rue de l'IA, 75000 Paris")
-    phone_pro = db.Column(db.String(20), default="Non configuré")
+    phone_pro = db.Column(db.String(20), default="Non configurÃ©")
     
     # Personnalisation de l'Agent IA (Moteur Voco)
-    prompt_personnalise = db.Column(db.Text, default="Tu es un assistant vocal d'élite, courtois et efficace.")
+    prompt_personnalise = db.Column(db.Text, default="Tu es un assistant vocal d'Ã©lite, courtois et efficace.")
     voix_preferee = db.Column(db.String(50), default="fr-FR-Neural-A")
     ton_ia = db.Column(db.String(50), default="Professionnel")
     
@@ -51,11 +51,11 @@ class User(UserMixin, db.Model):
 
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    client_name = db.Column(db.String(120), default="Client Identifié par IA")
+    client_name = db.Column(db.String(120), default="Client IdentifiÃ© par IA")
     client_phone = db.Column(db.String(30), default="Inconnu")
     date_str = db.Column(db.String(100))
     details = db.Column(db.Text)
-    status = db.Column(db.String(50), default="Confirmé")
+    status = db.Column(db.String(50), default="ConfirmÃ©")
     priorite = db.Column(db.String(20), default="Normale")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -63,14 +63,14 @@ class Appointment(db.Model):
 @login_manager.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
-# --- BLOC DE SYNCHRONISATION RADICALE (RÉGLAGE ERREUR 500) ---
+# --- BLOC DE SYNCHRONISATION RADICALE (RÃ‰GLAGE ERREUR 500) ---
 with app.app_context():
-    # Suppression et recréation pour garantir que 'client_name' existe sur Render
+    # Suppression et recrÃ©ation pour garantir que 'client_name' existe sur Render
     # db.drop_all() 
     db.create_all()
-    print(">>> [SYSTEM] BASE DE DONNÉES RÉINITIALISÉE AVEC SUCCÈS - SCHEMA V2 ACTIVE")
+    print(">>> [SYSTEM] BASE DE DONNÃ‰ES RÃ‰INITIALISÃ‰E AVEC SUCCÃˆS - SCHEMA V2 ACTIVE")
 
-# --- ENGINE DE DESIGN (CSS FRAMEWORK PROPRIÉTAIRE) ---
+# --- ENGINE DE DESIGN (CSS FRAMEWORK PROPRIÃ‰TAIRE) ---
 STYLE = """
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -120,7 +120,7 @@ def profil():
         current_user.phone_pro = request.form.get('ph')
         current_user.adresse = request.form.get('ad')
         db.session.commit()
-        flash("Profil mis à jour !")
+        flash("Profil mis Ã  jour !")
 
     content = f"""
     <div class="flex justify-between items-center mb-12">
@@ -146,7 +146,7 @@ def profil():
         </div>
         
         <div class="glass-card p-10 col-span-2">
-            <h3 class="text-xl font-black mb-8 italic text-indigo-600 underline underline-offset-8 decoration-2">Informations Générales</h3>
+            <h3 class="text-xl font-black mb-8 italic text-indigo-600 underline underline-offset-8 decoration-2">Informations GÃ©nÃ©rales</h3>
             <form method="POST" class="space-y-6">
                 <div class="grid grid-cols-2 gap-6">
                     <div class="space-y-2">
@@ -159,14 +159,14 @@ def profil():
                     </div>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Téléphone Professionnel</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">TÃ©lÃ©phone Professionnel</label>
                     <input name="ph" value="{current_user.phone_pro}" class="input-pro">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Adresse complète du siège</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Adresse complÃ¨te du siÃ¨ge</label>
                     <input name="ad" value="{current_user.adresse}" class="input-pro">
                 </div>
-                <button class="w-full btn-grad text-white p-5 rounded-[22px] font-black shadow-lg uppercase tracking-widest text-xs mt-4">Mettre à jour mes infos</button>
+                <button class="w-full btn-grad text-white p-5 rounded-[22px] font-black shadow-lg uppercase tracking-widest text-xs mt-4">Mettre Ã  jour mes infos</button>
             </form>
         </div>
     </div>
@@ -177,7 +177,7 @@ def profil():
             <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em] ml-4 mb-6">Expert Mode</p>
             <a href="/master-admin" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-admin' else ''} text-white"><i class="fas fa-shield-halved w-5 text-indigo-400"></i> Master Control</a>
             <a href="/master-clients" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-clients' else ''} text-white"><i class="fas fa-id-card-clip w-5 text-indigo-400"></i> Clients Portfolio</a>
-            <a href="/master-logs" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-logs' else ''} text-white"><i class="fas fa-terminal w-5 text-indigo-400"></i> Logs Système</a>''' if is_m else ''}
+            <a href="/master-logs" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-logs' else ''} text-white"><i class="fas fa-terminal w-5 text-indigo-400"></i> Logs SystÃ¨me</a>''' if is_m else ''}
         </nav>
         <div class="pt-8 border-t border-slate-800">
             <a href="/logout" class="flex items-center gap-4 p-4 text-red-400 hover:bg-red-500/10 rounded-2xl transition font-black uppercase text-xs tracking-widest"><i class="fas fa-sign-out-alt"></i> Quitter DigitagPro</a>
@@ -186,7 +186,7 @@ def profil():
     """
     return f"{STYLE}<div class='flex'>{sidebar}<main class='ml-80 flex-1 p-12 min-h-screen bg-[#f8fafc] text-slate-900'>{content}</main></div>"
 
-# --- SYSTÈME D'AUTHENTIFICATION ---
+# --- SYSTÃˆME D'AUTHENTIFICATION ---
 @app.route('/')
 def home(): return redirect(url_for('login'))
 
@@ -196,16 +196,16 @@ def login():
         u = User.query.filter_by(email=request.form.get('email')).first()
         if u and u.password == request.form.get('password'):
             login_user(u); return redirect(url_for('dashboard'))
-        flash("Les identifiants ne correspondent à aucun compte actif.")
-    return render_template_string(STYLE + """<body class="bg-[#0f172a] flex items-center justify-center h-screen"><form method="POST" class="bg-white p-16 rounded-[4rem] shadow-2xl w-[500px] border border-slate-100"><div class="text-center mb-12"><h2 class="text-5xl font-black text-slate-900 mb-4 italic tracking-tighter">CONNEXION</h2><p class="text-slate-400 font-bold uppercase tracking-[0.3em] text-xs">Accès Sécurisé Entreprise</p></div><div class="space-y-6"><div class="relative"><i class="fas fa-at absolute top-5 left-5 text-slate-400"></i><input name="email" type="email" placeholder="Email Professionnel" class="input-pro pl-14" required></div><div class="relative"><i class="fas fa-lock absolute top-5 left-5 text-slate-400"></i><input name="password" type="password" placeholder="Mot de passe" class="input-pro pl-14" required></div><button class="w-full btn-grad text-white p-6 rounded-[25px] font-black shadow-xl uppercase tracking-widest text-sm">Ouvrir le Panel</button></div><p class="text-center mt-10 text-sm text-slate-500 font-medium">Pas encore de licence ? <a href="/register" class="text-indigo-600 font-extrabold hover:underline">S'enregistrer</a></p></form></body>""")
+        flash("Les identifiants ne correspondent Ã  aucun compte actif.")
+    return render_template_string(STYLE + """<body class="bg-[#0f172a] flex items-center justify-center h-screen"><form method="POST" class="bg-white p-16 rounded-[4rem] shadow-2xl w-[500px] border border-slate-100"><div class="text-center mb-12"><h2 class="text-5xl font-black text-slate-900 mb-4 italic tracking-tighter">CONNEXION</h2><p class="text-slate-400 font-bold uppercase tracking-[0.3em] text-xs">AccÃ¨s SÃ©curisÃ© Entreprise</p></div><div class="space-y-6"><div class="relative"><i class="fas fa-at absolute top-5 left-5 text-slate-400"></i><input name="email" type="email" placeholder="Email Professionnel" class="input-pro pl-14" required></div><div class="relative"><i class="fas fa-lock absolute top-5 left-5 text-slate-400"></i><input name="password" type="password" placeholder="Mot de passe" class="input-pro pl-14" required></div><button class="w-full btn-grad text-white p-6 rounded-[25px] font-black shadow-xl uppercase tracking-widest text-sm">Ouvrir le Panel</button></div><p class="text-center mt-10 text-sm text-slate-500 font-medium">Pas encore de licence ? <a href="/register" class="text-indigo-600 font-extrabold hover:underline">S'enregistrer</a></p></form></body>""")
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        if User.query.filter_by(email=request.form.get('email')).first(): return "Email déjà exploité"
+        if User.query.filter_by(email=request.form.get('email')).first(): return "Email dÃ©jÃ  exploitÃ©"
         u = User(email=request.form.get('email'), password=request.form.get('password'), business_name=request.form.get('b_name'), sector=request.form.get('sector'))
         db.session.add(u); db.session.commit(); return redirect(url_for('login'))
-    return render_template_string(STYLE + """<body class="bg-slate-50 flex items-center justify-center h-screen"><form method="POST" class="bg-white p-16 rounded-[4rem] shadow-2xl w-[600px]"><h2 class="text-4xl font-black mb-4 text-slate-900 italic tracking-tighter text-center uppercase">Nouvelle Licence DigitagPro</h2><p class="text-center text-slate-400 mb-10 font-medium tracking-wide">Rejoignez l'élite de la gestion téléphonique automatisée.</p><div class="grid grid-cols-2 gap-6"><input name="b_name" placeholder="Nom du commerce" class="input-pro col-span-2" required><input name="sector" placeholder="Secteur (ex: Garage, Clinique)" class="input-pro" required><input name="email" type="email" placeholder="Email de contact" class="input-pro" required><input name="password" type="password" placeholder="Mot de passe" class="input-pro col-span-2" required></div><button class="w-full bg-slate-950 text-white p-6 rounded-[25px] font-black mt-8 shadow-2xl hover:bg-indigo-600 transition uppercase tracking-widest text-sm">Lancer mon Infrastructure IA</button></form></body>""")
+    return render_template_string(STYLE + """<body class="bg-slate-50 flex items-center justify-center h-screen"><form method="POST" class="bg-white p-16 rounded-[4rem] shadow-2xl w-[600px]"><h2 class="text-4xl font-black mb-4 text-slate-900 italic tracking-tighter text-center uppercase">Nouvelle Licence DigitagPro</h2><p class="text-center text-slate-400 mb-10 font-medium tracking-wide">Rejoignez l'Ã©lite de la gestion tÃ©lÃ©phonique automatisÃ©e.</p><div class="grid grid-cols-2 gap-6"><input name="b_name" placeholder="Nom du commerce" class="input-pro col-span-2" required><input name="sector" placeholder="Secteur (ex: Garage, Clinique)" class="input-pro" required><input name="email" type="email" placeholder="Email de contact" class="input-pro" required><input name="password" type="password" placeholder="Mot de passe" class="input-pro col-span-2" required></div><button class="w-full bg-slate-950 text-white p-6 rounded-[25px] font-black mt-8 shadow-2xl hover:bg-indigo-600 transition uppercase tracking-widest text-sm">Lancer mon Infrastructure IA</button></form></body>""")
 
 @app.route('/logout')
 def logout(): logout_user(); return redirect(url_for('login'))
@@ -264,7 +264,7 @@ def dashboard():
         <div class="lg:col-span-2 glass-card bg-slate-900 text-white p-12 relative border-none shadow-2xl">
             <div class="relative z-10">
                 <h3 class="text-3xl font-black mb-6 italic text-indigo-400 underline underline-offset-[12px] decoration-4">Connecter Twilio</h3>
-                <p class="text-slate-400 mb-10 max-w-lg leading-relaxed font-medium text-lg">Votre agent est prêt. Pour l'activer sur votre ligne téléphonique, copiez ce Webhook dans votre interface Twilio :</p>
+                <p class="text-slate-400 mb-10 max-w-lg leading-relaxed font-medium text-lg">Votre agent est prÃªt. Pour l'activer sur votre ligne tÃ©lÃ©phonique, copiez ce Webhook dans votre interface Twilio :</p>
                 <div class="bg-indigo-600/10 p-8 rounded-[30px] border border-indigo-500/30 font-mono text-indigo-300 text-md italic shadow-inner">
                     https://digitagpro-ia.onrender.com/voice/{{{{ current_user.id }}}}
                 </div>
@@ -273,9 +273,9 @@ def dashboard():
         </div>
         <div class="glass-card p-10 bg-indigo-600 text-white border-none">
             <h3 class="text-xl font-black mb-6 flex items-center gap-3 italic"><i class="fas fa-star text-amber-400"></i> Mode Premium</h3>
-            <p class="text-indigo-100 mb-8 leading-relaxed font-medium">Vous bénéficiez actuellement de l'accès illimité aux fonctions Master et au moteur vocal GPT-4o-mini.</p>
+            <p class="text-indigo-100 mb-8 leading-relaxed font-medium">Vous bÃ©nÃ©ficiez actuellement de l'accÃ¨s illimitÃ© aux fonctions Master et au moteur vocal GPT-4o-mini.</p>
             <div class="space-y-4">
-                <div class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-400"></i> Appels Illimités</div>
+                <div class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-400"></i> Appels IllimitÃ©s</div>
                 <div class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-400"></i> Analyse Emotionnelle</div>
                 <div class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-400"></i> Exportation CRM PDF</div>
             </div>
@@ -284,7 +284,7 @@ def dashboard():
     """
     return render_template_string(get_layout(content, "dashboard"))
 
-# --- PAGE CONFIGURATION IA AVANCÉE ---
+# --- PAGE CONFIGURATION IA AVANCÃ‰E ---
 @app.route('/config-ia', methods=['GET', 'POST'])
 @login_required
 def config_ia():
@@ -293,7 +293,7 @@ def config_ia():
         current_user.tarifs = request.form.get('t'); current_user.adresse = request.form.get('a')
         current_user.duree_moyenne = request.form.get('d'); current_user.prompt_personnalise = request.form.get('p')
         current_user.ton_ia = request.form.get('ton')
-        db.session.commit(); flash("Mise à jour du cerveau de l'IA effectuée !")
+        db.session.commit(); flash("Mise Ã  jour du cerveau de l'IA effectuÃ©e !")
         
     content = """
     <div class="flex justify-between items-center mb-16">
@@ -303,17 +303,17 @@ def config_ia():
     
     <form id="configForm" method="POST" class="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div class="glass-card space-y-8 p-12 border-l-8 border-l-indigo-500">
-            <h3 class="text-2xl font-black italic underline underline-offset-8 decoration-2 text-indigo-600 mb-10"><i class="fas fa-building-user mr-3"></i> Identité Commerce</h3>
+            <h3 class="text-2xl font-black italic underline underline-offset-8 decoration-2 text-indigo-600 mb-10"><i class="fas fa-building-user mr-3"></i> IdentitÃ© Commerce</h3>
             <div class="space-y-3">
                 <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Nom de l'enseigne</label>
                 <input name="n" value="{{current_user.business_name}}" class="input-pro shadow-sm">
             </div>
             <div class="space-y-3">
-                <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Horaires d'ouverture précis</label>
+                <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Horaires d'ouverture prÃ©cis</label>
                 <textarea name="h" rows="4" class="input-pro shadow-sm">{{current_user.horaires}}</textarea>
             </div>
             <div class="space-y-3">
-                <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Coordonnées Physiques</label>
+                <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">CoordonnÃ©es Physiques</label>
                 <input name="a" value="{{current_user.adresse}}" class="input-pro shadow-sm">
             </div>
         </div>
@@ -322,7 +322,7 @@ def config_ia():
             <h3 class="text-2xl font-black italic underline underline-offset-8 decoration-2 text-emerald-600 mb-10"><i class="fas fa-microchip mr-3"></i> Logique de l'Agent IA</h3>
             <div class="space-y-3">
                 <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Catalogue Services & Tarifs</label>
-                <textarea name="t" rows="5" class="input-pro shadow-sm" placeholder="Ex: Coupe 20€, Couleur 50€...">{{current_user.tarifs}}</textarea>
+                <textarea name="t" rows="5" class="input-pro shadow-sm" placeholder="Ex: Coupe 20â‚¬, Couleur 50â‚¬...">{{current_user.tarifs}}</textarea>
             </div>
             <div class="grid grid-cols-2 gap-6">
                 <div class="space-y-3">
@@ -339,7 +339,7 @@ def config_ia():
                 </div>
             </div>
             <div class="space-y-3">
-                <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Instructions Secrètes de Dialogue</label>
+                <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-2">Instructions SecrÃ¨tes de Dialogue</label>
                 <textarea name="p" rows="4" class="input-pro shadow-sm" placeholder="Ex: Toujours demander si c'est pour un nouveau client...">{{current_user.prompt_personnalise}}</textarea>
             </div>
         </div>
@@ -364,7 +364,7 @@ def mon_agenda():
         <div class="bg-slate-50 p-10 border-b border-slate-100 flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-list-ul text-sm"></i></div>
-                <span class="text-sm font-black text-slate-700 uppercase tracking-[0.2em] italic">Liste des Réservations IA</span>
+                <span class="text-sm font-black text-slate-700 uppercase tracking-[0.2em] italic">Liste des RÃ©servations IA</span>
             </div>
             <span class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">{{ current_user.appointments|length }} Enregistrements</span>
         </div>
@@ -378,20 +378,20 @@ def mon_agenda():
                     <div>
                         <p class="text-2xl font-black text-slate-900 mb-2 italic tracking-tighter leading-tight group-hover:text-indigo-600 transition-colors">"{{ r.details }}"</p>
                         <div class="flex items-center gap-4">
-                            <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest border-r pr-4 border-slate-200"><i class="far fa-clock mr-2"></i>Reçu le {{ r.date_str }}</span>
+                            <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest border-r pr-4 border-slate-200"><i class="far fa-clock mr-2"></i>ReÃ§u le {{ r.date_str }}</span>
                             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic"><i class="fas fa-phone mr-2 text-[8px]"></i>Source: Twilio Vocal Agent</span>
                         </div>
                     </div>
                 </div>
                 <div class="text-right">
-                    <span class="stat-badge bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-sm"><i class="fas fa-circle text-[6px] mr-2"></i>Confirmé par IA</span>
+                    <span class="stat-badge bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-sm"><i class="fas fa-circle text-[6px] mr-2"></i>ConfirmÃ© par IA</span>
                 </div>
             </div>
             {% else %}
             <div class="p-40 text-center text-slate-300 italic">
                 <i class="fas fa-calendar-alt text-[120px] mb-10 opacity-10"></i>
-                <p class="text-3xl font-black tracking-tighter text-slate-200">Aucun appel enregistré pour le moment.</p>
-                <p class="mt-4 text-slate-400 font-medium max-w-sm mx-auto">Votre agent vocal IA est en attente de sa première conversation téléphonique pour remplir cet agenda.</p>
+                <p class="text-3xl font-black tracking-tighter text-slate-200">Aucun appel enregistrÃ© pour le moment.</p>
+                <p class="mt-4 text-slate-400 font-medium max-w-sm mx-auto">Votre agent vocal IA est en attente de sa premiÃ¨re conversation tÃ©lÃ©phonique pour remplir cet agenda.</p>
             </div>
             {% endfor %}
         </div>
@@ -399,7 +399,7 @@ def mon_agenda():
     """
     return render_template_string(get_layout(content, "agenda"))
 
-# --- MASTER ADMIN VIEWS (ZONE SÉCURISÉE) ---
+# --- MASTER ADMIN VIEWS (ZONE SÃ‰CURISÃ‰E) ---
 @app.route('/master-admin')
 @login_required
 def master_admin():
@@ -433,7 +433,7 @@ def master_admin():
             </div>
         </div>
         <div class="glass-card p-12 border-t-8 border-t-indigo-600">
-            <h3 class="text-2xl font-black mb-12 italic tracking-tight underline underline-offset-8">Logs Système Globaux</h3>
+            <h3 class="text-2xl font-black mb-12 italic tracking-tight underline underline-offset-8">Logs SystÃ¨me Globaux</h3>
             <div class="space-y-5">
                 {% for l in logs %}
                 <div class="p-6 border-l-8 border-indigo-500 bg-slate-50 rounded-r-[25px] flex justify-between items-center">
@@ -499,7 +499,7 @@ def master_logs():
     if not current_user.is_admin: return redirect(url_for('dashboard'))
     logs = Appointment.query.order_by(Appointment.id.desc()).all()
     content = """
-    <h1 class="text-4xl font-black mb-12 italic tracking-tighter">Base de Données Système</h1>
+    <h1 class="text-4xl font-black mb-12 italic tracking-tighter">Base de DonnÃ©es SystÃ¨me</h1>
     <div class="space-y-4 pb-20">
         {% for l in logs %}
         <div class="glass-card !py-8 flex justify-between items-center hover:border-indigo-400 transition shadow-lg group">
@@ -525,8 +525,8 @@ def dev_master():
     u = User.query.filter_by(email='romanlayani@gmail.com').first()
     if u: 
         u.is_admin = True; db.session.commit()
-        return "ACCÈS MAÎTRE SUPRÊME ACTIVÉ - VEUILLEZ RAFRAICHIR LE DASHBOARD"
-    return "UTILISATEUR NON TROUVÉ DANS LA BASE DIGITAGPRO"
+        return "ACCÃˆS MAÃŽTRE SUPRÃŠME ACTIVÃ‰ - VEUILLEZ RAFRAICHIR LE DASHBOARD"
+    return "UTILISATEUR NON TROUVÃ‰ DANS LA BASE DIGITAGPRO"
 
 # --- MOTEUR VOCAL IA VOCO (CORE ENGINE 2026) ---
 @app.route("/voice/<int:user_id>", methods=['POST'])
@@ -537,15 +537,15 @@ def voice(user_id):
     
     # SYSTEM LOGS POWERSHELL
     print("\n" + "="*80)
-    print(f"📞 APPEL ENTRANT DETECTE | CLIENT : {c.business_name} | ID : {c.id}")
+    print(f"ðŸ“ž APPEL ENTRANT DETECTE | CLIENT : {c.business_name} | ID : {c.id}")
     print("="*80)
     
     if not txt:
-        print("🤖 IA SYSTEM : Génération du message d'accueil...")
+        print("ðŸ¤– IA SYSTEM : GÃ©nÃ©ration du message d'accueil...")
         ai_res = f"Bonjour, bienvenue chez {c.business_name}, comment puis-je vous aider ?"
     else:
-        print(f"👤 CLIENT : {txt}")
-        # Prompt Ultra-Densifié pour précision maximale
+        print(f"ðŸ‘¤ CLIENT : {txt}")
+        # Prompt Ultra-DensifiÃ© pour prÃ©cision maximale
         prompt = f"""Tu es l'agent vocal d'intelligence artificielle de {c.business_name}. 
         CONTEXTE COMMERCIAL :
         - SECTEUR : {c.sector}
@@ -553,18 +553,18 @@ def voice(user_id):
         - HORAIRES : {c.horaires}
         - TARIFS & SERVICES : {c.tarifs}
         - DUREE RDV : {c.duree_moyenne} min
-        - TON SOUHAITÉ : {c.ton_ia}
+        - TON SOUHAITÃ‰ : {c.ton_ia}
         - INSTRUCTIONS CLIENT : {c.prompt_personnalise}
         
-        RÈGLES D'INTERACTION :
-        1. Sois extrêmement courtois et concis.
+        RÃˆGLES D'INTERACTION :
+        1. Sois extrÃªmement courtois et concis.
         2. Si le client souhaite un rendez-vous, propose-lui de fixer une date et une heure selon nos horaires.
-        3. Dès que l'accord est conclu, tu DOIS ABSOLUMENT terminer ton message par la balise suivante :
+        3. DÃ¨s que l'accord est conclu, tu DOIS ABSOLUMENT terminer ton message par la balise suivante :
            CONFIRMATION: [Nom du service, Jour, Heure]
         """
         
         try:
-            print("🧠 IA PROCESSING : Appel API OpenAI GPT-4o-mini...")
+            print("ðŸ§  IA PROCESSING : Appel API OpenAI GPT-4o-mini...")
             chat = client.chat.completions.create(
                 model="gpt-4o-mini", 
                 messages=[{"role": "system", "content": prompt}, {"role": "user", "content": txt}],
@@ -572,22 +572,22 @@ def voice(user_id):
                 temperature=0.7
             )
             ai_res = chat.choices[0].message.content
-            print(f"🤖 IA REPOND : {ai_res}")
+            print(f"ðŸ¤– IA REPOND : {ai_res}")
             
             if "CONFIRMATION:" in ai_res:
                 details_rdv = ai_res.split("CONFIRMATION:")[1].strip()
-                # Sauvegarde Sécurisée
+                # Sauvegarde SÃ©curisÃ©e
                 db.session.add(Appointment(
-                    date_str=datetime.now().strftime("%d/%m à %H:%M"), 
-                    details=f"Réservation IA : {details_rdv}", 
+                    date_str=datetime.now().strftime("%d/%m Ã  %H:%M"), 
+                    details=f"RÃ©servation IA : {details_rdv}", 
                     user_id=c.id
                 ))
                 db.session.commit()
-                print("✅ SYSTEM : RÉSERVATION ENREGISTRÉE DANS LA BASE SQL")
-                ai_res = ai_res.split("CONFIRMATION:")[0] + " Parfait, votre rendez-vous est maintenant enregistré dans notre agenda."
+                print("âœ… SYSTEM : RÃ‰SERVATION ENREGISTRÃ‰E DANS LA BASE SQL")
+                ai_res = ai_res.split("CONFIRMATION:")[0] + " Parfait, votre rendez-vous est maintenant enregistrÃ© dans notre agenda."
         except Exception as e:
-            print(f"❌ CRITICAL ERROR IA : {e}")
-            ai_res = "Je vous prie de m'excuser, une interférence technique perturbe notre communication. Pouvez-vous répéter ?"
+            print(f"âŒ CRITICAL ERROR IA : {e}")
+            ai_res = "Je vous prie de m'excuser, une interfÃ©rence technique perturbe notre communication. Pouvez-vous rÃ©pÃ©ter ?"
 
     print("="*80 + "\n")
     g = Gather(input='speech', language='fr-FR', timeout=1.5, speechTimeout='auto')
