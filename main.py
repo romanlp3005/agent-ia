@@ -146,7 +146,7 @@ def profil():
         </div>
         
         <div class="glass-card p-10 col-span-2">
-            <h3 class="text-xl font-black mb-8 italic text-indigo-600 underline underline-offset-8 decoration-2">Informations GÃ©nÃ©rales</h3>
+            <h3 class="text-xl font-black mb-8 italic text-indigo-600 underline underline-offset-8 decoration-2">Informations Business</h3>
             <form method="POST" class="space-y-6">
                 <div class="grid grid-cols-2 gap-6">
                     <div class="space-y-2">
