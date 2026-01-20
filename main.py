@@ -54,19 +54,12 @@ class Appointment(db.Model):
 @login_manager.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
-# --- INITIALISATION & MIGRATION AUTO ---
+# --- INITIALISATION DE FORCE ---
 with app.app_context():
-    db.create_all()
-    try:
-        with db.engine.connect() as conn:
-            # 1. Mise à jour de la table User
-            cols_user = {"sector": "TEXT", "horaires": "TEXT", "tarifs": "TEXT", "duree_moyenne": "VARCHAR(20)", "adresse": "TEXT", "prompt_personnalise": "TEXT"}
-            for col, dtype in cols_user.items():
-                try:
-                    conn.execute(text(f'ALTER TABLE "user" ADD COLUMN {col} {dtype}'))
-                    conn.commit()
-                except: pass
-            
+    # Décommenter les deux lignes suivantes pour TOUT remettre à zéro si l'erreur persiste
+    db.drop_all() # Supprime les vieilles tables qui buggent
+    db.create_all() # Recrée les tables avec toutes les colonnes (SaaS V3)
+    print("Base de données réinitialisée avec succès.")            
             # 2. MISE À JOUR DE LA TABLE APPOINTMENT (Celle qui bloque maintenant)
             cols_app = {"client_name": "VARCHAR(100)", "status": "VARCHAR(20)"}
             for col, dtype in cols_app.items():
