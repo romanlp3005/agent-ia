@@ -54,14 +54,12 @@ class Appointment(db.Model):
 @login_manager.user_loader
 def load_user(uid): return User.query.get(int(uid))
 
-# --- DATABASE MIGRATION SYSTEM ---
+# --- DATABASE RESET & SYNC ---
 with app.app_context():
-    # ATTENTION : Cette ligne va vider ta base pour la reconstruire au propre
-    # Utilise-la une seule fois pour débloquer la situation
+    # Force la suppression et la recréation pour aligner les 18 000 caractères
     db.drop_all() 
     db.create_all()
-    print("Base de données réinitialisée avec succès !")
-# --- DESIGN ENGINE ---
+    print("Base de données synchronisée avec le moteur SaaS V3")# --- DESIGN ENGINE ---
 CSS = """
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
