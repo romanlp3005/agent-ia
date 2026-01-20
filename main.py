@@ -102,13 +102,26 @@ def get_layout(content, active_page="dashboard"):
                 <i class="fas fa-brain text-xl text-white"></i>
             </div>
             <span class="text-2xl font-black tracking-tighter uppercase italic text-white underline decoration-indigo-500">DigitagPro</span>
-        </div>
+        </diturn f"{STYLE}<div cv>
         <nav class="flex-1 space-y-3">
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] ml-4 mb-6">SaaS Plateforme</p>
-            <a href="/dashboard" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='dashboard' else ''}"><i class="fas fa-layer-group w-5"></i> Dashboard</a>
-            <a href="/config-ia" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='config' else ''}"><i class="fas fa-wand-magic-sparkles w-5"></i> Configuration IA</a>
-            <a href="/mon-agenda" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='agenda' else ''}"><i class="fas fa-calendar-day w-5"></i> Mon Agenda</a>
-            <a href="/profil" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='profil' else ''}"><i class="fas fa-user-tie w-5"></i> Profil Business</a>
+            # --- DANS TON MENU (NAV) ---
+<a href="/dashboard" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='dash' else ''}"><i class="fas fa-grid-2 w-5"></i> Dashboard</a>
+<a href="/mon-agenda" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='agenda' else ''}"><i class="fas fa-calendar-day w-5"></i> Mon Agenda</a>
+<a href="/profil" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='profil' else ''}"><i class="fas fa-user-tie w-5"></i> Profil Business</a>
+            
+            {f'''<div class="pt-10 mb-6 border-t border-slate-800/50"></div>
+            <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em] ml-4 mb-6">Expert Mode</p>
+            <a href="/master-admin" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-admin' else ''} text-white"><i class="fas fa-shield-halved w-5 text-indigo-400"></i> Master Control</a>
+            <a href="/master-clients" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-clients' else ''} text-white"><i class="fas fa-id-card-clip w-5 text-indigo-400"></i> Clients Portfolio</a>
+            <a href="/master-logs" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-logs' else ''} text-white"><i class="fas fa-terminal w-5 text-indigo-400"></i> Logs Systeme</a>''' if is_m else ''}
+        </nav>
+        <div class="pt-8 border-t border-slate-800">
+            <a href="/logout" class="flex items-center gap-4 p-4 text-red-400 hover:bg-red-500/10 rounded-2xl transition font-black uppercase text-xs tracking-widest"><i class="fas fa-sign-out-alt"></i> Quitter DigitagPro</a>
+        </div>
+    </div>
+    """
+    return f"{STYLE}<div class='flex'>{sidebar}<main class='ml-80 flex-1 p-12 min-h-screen bg-[#f8fafc] text-slate-900'>{content}</main></div>"
 
 @app.route('/profil', methods=['GET', 'POST'])
 @login_required
@@ -136,19 +149,7 @@ def profil():
         </form>
     </div>
     '''
-    return render_template_string(get_layout(content, "profil"))            
-            {f'''<div class="pt-10 mb-6 border-t border-slate-800/50"></div>
-            <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.3em] ml-4 mb-6">Expert Mode</p>
-            <a href="/master-admin" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-admin' else ''} text-white"><i class="fas fa-shield-halved w-5 text-indigo-400"></i> Master Control</a>
-            <a href="/master-clients" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-clients' else ''} text-white"><i class="fas fa-id-card-clip w-5 text-indigo-400"></i> Clients Portfolio</a>
-            <a href="/master-logs" class="flex items-center gap-4 p-4 nav-link {'active-nav shadow-lg' if active_page=='m-logs' else ''} text-white"><i class="fas fa-terminal w-5 text-indigo-400"></i> Logs Systeme</a>''' if is_m else ''}
-        </nav>
-        <div class="pt-8 border-t border-slate-800">
-            <a href="/logout" class="flex items-center gap-4 p-4 text-red-400 hover:bg-red-500/10 rounded-2xl transition font-black uppercase text-xs tracking-widest"><i class="fas fa-sign-out-alt"></i> Quitter DigitagPro</a>
-        </div>
-    </div>
-    """
-    return f"{STYLE}<div class='flex'>{sidebar}<main class='ml-80 flex-1 p-12 min-h-screen bg-[#f8fafc] text-slate-900'>{content}</main></div>"
+    return render_template_string(get_layout(content, "profil"))
 
 # --- SYSTeˆME D'AUTHENTIFICATION ---
 @app.route('/')
