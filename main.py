@@ -66,7 +66,7 @@ def load_user(uid): return User.query.get(int(uid))
 # --- BLOC DE SYNCHRONISATION RADICALE (RÉGLAGE ERREUR 500) ---
 with app.app_context():
     # Suppression et recréation pour garantir que 'client_name' existe sur Render
-    db.drop_all() 
+    # db.drop_all() 
     db.create_all()
     print(">>> [SYSTEM] BASE DE DONNÉES RÉINITIALISÉE AVEC SUCCÈS - SCHEMA V2 ACTIVE")
 
